@@ -1,45 +1,35 @@
-const express = require("express");
-const http = require("http");
-const WebSocket = require("ws");
+import express from "express";
+import { WebSocketServer } from "ws";
+import http from "http";
 
 const app = express();
+const port = process.env.PORT || 3000;
+
+// Servidor HTTP normal
 const server = http.createServer(app);
 
-const wss = new WebSocket.Server({ server });
+// Servidor WebSocket sobre el mismo HTTP
+const wss = new WebSocketServer({ server });
 
 wss.on("connection", (ws) => {
-  console.log("✅ WebSocket client connected");
+  console.log("Client connected via WebSocket");
 
-  ws.send(JSON.stringify({
-    type: "connected",
-    message: "WebSocket server is working"
-  }));
-
-  ws.on("message", (message) => {
-    console.log("📩 Message received:", message.toString());
-
-    ws.send(JSON.stringify({
-      type: "echo",
-      data: message.toString()
-    }));
+  ws.on("message", (msg) => {
+    console.log("Received from client:", msg.toString());
+    ws.send(JSON.stringify({ type: "echo", data: msg.toString() }));
   });
 
-  ws.on("close", () => {
-    console.log("❌ WebSocket client disconnected");
-  });
+  ws.on("close", () => console.log("Client disconnected"));
+  ws.on("error", (err) => console.error("WebSocket error:", err));
 
-  ws.on("error", (err) => {
-    console.error("WebSocket error:", err);
-  });
+  // Mensaje inicial de conexión
+  ws.send(JSON.stringify({ type: "connected", message: "WS Ready" }));
 });
 
-app.get("/", (req, res) => {
-  res.send("WebSocket server running");
+// Solo para verificar que el servidor HTTP funciona
+app.get("/", (req, res) => res.send("Hello, this is your WebSocket server!"));
+
+// Levantar servidor
+server.listen(port, () => {
+  console.log(`Server listening on http://localhost:${port}`);
 });
-
-const PORT = process.env.PORT || 3001;
-
-server.listen(PORT, () => {
-  console.log(`🚀 Server listening on http://localhost:${PORT}`);
-});
-
