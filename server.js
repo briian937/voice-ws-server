@@ -1,6 +1,6 @@
-import express from "express";
-import { WebSocketServer } from "ws";
-import http from "http";
+const express = require("express");
+const { WebSocketServer } = require("ws");
+const http = require("http");
 
 const app = express();
 const port = process.env.PORT || 3000;
